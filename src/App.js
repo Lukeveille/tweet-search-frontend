@@ -14,6 +14,7 @@ class App extends React.Component {
     search: '',
     searchField: 'text',
     query: '',
+    queryField: 'text',
     results: [],
 
     //pagination states
@@ -42,7 +43,7 @@ class App extends React.Component {
   changePage = num => {
     const {
       query,
-      searchField,
+      queryField,
       pageCount,
       pageStart,
       paginationLimit,
@@ -60,20 +61,20 @@ class App extends React.Component {
     }
     
     this.setState({ loading: true, currentPage: num });
-    axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${perPage}&${searchField}_contains=${encodeURIComponent(query)}&_start=${(num - 1) * perPage}`)
+    axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${perPage}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(num - 1) * perPage}`)
     .then(this.updatePaginationStates)
   }
   
   setPageSize = e => {
-    const { query, searchField, selectedRow, sortDirection } = this.state
+    const { query, queryField, selectedRow, sortDirection } = this.state
     this.setState({ loading: true, perPage: e.target.value, currentPage: 1, pageStart: 1 });
-    axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${e.target.value}&${searchField}_contains=${encodeURIComponent(query)}&_start=${(0) * e.target.value}`)
+    axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${e.target.value}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(0) * e.target.value}`)
     .then(this.updatePaginationStates)
   }
 
   // adjust sorting key and direction when table header is clicked
   changeHeaderSort = selection => {
-    const { selectedRow, query, perPage, sortDirection, searchField } = this.state
+    const { selectedRow, query, perPage, sortDirection, queryField } = this.state
     let newSortDirection = sortDirection
     let newSelectedRow = selectedRow
 
@@ -84,7 +85,7 @@ class App extends React.Component {
     }
 
     this.setState({ loading: true, sortDirection: newSortDirection, selectedRow: newSelectedRow });
-    axios.get(`${api}/tweets?_sort=${newSelectedRow}:${newSortDirection}&_limit=${perPage}&${searchField}_contains=${encodeURIComponent(query)}&_start=${(0) * perPage}`)
+    axios.get(`${api}/tweets?_sort=${newSelectedRow}:${newSortDirection}&_limit=${perPage}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(0) * perPage}`)
     .then(this.updatePaginationStates)
   }
 
@@ -93,7 +94,7 @@ class App extends React.Component {
     e.preventDefault();
     const { search, searchField, perPage, selectedRow, sortDirection } = this.state;
 
-    this.setState({loading: true, size: 0, results: [], currentPage: 1, query: search, selectedRow: searchField === "screen_name"? "user_name" : searchField })
+    this.setState({loading: true, size: 0, results: [], currentPage: 1, query: search, queryField: searchField, selectedRow: searchField === "screen_name"? "user_name" : searchField })
 
     // first, fetch total query size, then fetch a page worth of data
     axios.get(`${api}/tweets/count?${searchField}_contains=${encodeURIComponent(search)}`).then(res => {
