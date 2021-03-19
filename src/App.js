@@ -23,10 +23,11 @@ class App extends React.Component {
     currentPage: 1,
     size: null,
     leftover: 0,
-    pageCount: 0
+    pageCount: 0,
+    selectedRow: 'id'
   }
 
-  fetchTweetsPath = `${api}/tweets?_sort=id:ASC&_limit=`
+  fetchTweetsPath = `${api}/tweets?_sort=${this.state.selectedRow}:ASC&_limit=`
   
   updatePaginationStates = (res, newSize) => {
     const { perPage, search } = this.state;
