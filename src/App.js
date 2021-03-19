@@ -1,8 +1,12 @@
 import React from 'react';
-import './App.css';
-
 import axios from "axios";
-import api from "./api";
+import api from "./helpers/api";
+import LoadingGraphic from "./components/LoadingGraphic"
+import SearchBar from "./components/SearchBar"
+import DataTable from "./components/DataTable"
+import Pagination from "./components/Pagination"
+
+import './App.css';
 
 class App extends React.Component {
   state = {
@@ -17,7 +21,7 @@ class App extends React.Component {
     paginationLimit: 10,
     pageStart: 1,
     currentPage: 1,
-    size: 0,
+    size: null,
     leftover: 0,
     pageCount: 0
   }
@@ -54,7 +58,8 @@ class App extends React.Component {
     }
     
     this.setState({ loading: true, currentPage: num });
-    axios.get(`${this.fetchTweetsPath}${perPage}&${searchField}_contains=${encodeURIComponent(search)}&_start=${(num - 1) * perPage}`).then(this.updatePaginationStates)
+    axios.get(`${this.fetchTweetsPath}${perPage}&${searchField}_contains=${encodeURIComponent(search)}&_start=${(num - 1) * perPage}`)
+    .then(this.updatePaginationStates)
   }
 
   // Query tweets
@@ -64,8 +69,9 @@ class App extends React.Component {
 
     this.setState({loading: true, size: 0, results: [], currentPage: 1})
     axios.get(`${api}/tweets/count?${searchField}_contains=${encodeURIComponent(search)}`).then(res => {
-      const size = res.data
-      axios.get(`${this.fetchTweetsPath}${perPage}&${searchField}_contains=${encodeURIComponent(search)}`).then(res => this.updatePaginationStates(res, size))
+      const size = res.data;
+      axios.get(`${this.fetchTweetsPath}${perPage}&${searchField}_contains=${encodeURIComponent(search)}`)
+      .then(res => this.updatePaginationStates(res, size));
     })
   }
 
@@ -91,90 +97,54 @@ class App extends React.Component {
     } = this.state;
 
     // Create array of page numbers
-    let pages = []
+    let pages = [];
     for (let i = 0; i < (pageCount > paginationLimit? paginationLimit : pageCount); i++) {
       if (i + pageStart <= pageCount) pages[i] = i + pageStart;
     }
 
     return (
       <div className="App">
-        
-        <form onSubmit={this.searchTweets}>
-          <select value={searchField} onChange={e => this.setState({ searchField: e.target.value })}>
-            <option value="text">Text</option>
-            <option value="user_name">User</option>
-            <option value="tweet_id">ID</option>
-            <option value="screen_name">@</option>
-          </select>
-          <input type="text" value={search} onChange={e => this.setState({ search: e.target.value })} />
-          <div>
-            <button type="submit" disabled={!search}>Search</button>
-          </div>
-        </form>
+        <SearchBar
+          search={search}
+          searchTweets={this.searchTweets}
+          searchField={searchField}
+          setSearch={e => this.setState({ search: e.target.value })}
+          setSearchField={e => this.setState({ searchField: e.target.value })}
+        />
 
-        {loading?
-        
-        <div className="lds-ellipsis">
-          <div />
-          <div />
-          <div />
-          <div />
-        </div>
+        {loading? <LoadingGraphic />
+        :
+        size === 0? <h4>Your search returned 0 results</h4>
         :
         results.length? <div>
-          <h4><i>Showing results</i> {(currentPage - 1) * perPage + 1} <i>to</i> {((currentPage - 1) * perPage + perPage) > size? size : ((currentPage - 1) * perPage + perPage)} <i>out of</i> {size} <i>for</i> "{query}"</h4>
-          <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Text</th>
-                <th>Likes</th>
-                <th>Retweets</th>
-                <th>Tweet ID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((result, i) => {
-                return <tr key={result.tweet_id} className="tweet-row" onClick={e => this.selectTweets(i)}>
-                  <td>{result.user_name} (@{result.screen_name})</td>
-                  <td>{result.text}</td>
-                  <td>{result.favorite_count}</td>
-                  <td>{result.retweet_count}</td>
-                  <td>{result.tweet_id}</td>
-                </tr>
-              })}
-            </tbody>
-          </table>
+          <h4>
+            <i>Showing results</i> {(currentPage - 1) * perPage + 1} <i>to</i> {((currentPage - 1) * perPage + perPage) > size? size : ((currentPage - 1) * perPage + perPage)} <i>out of</i> {size} <i>for</i> "{query}"
+          </h4>
+          <DataTable results={results} selectTweets={this.selectTweets}/>
         </div> : ''}
 
-          {size > perPage? <div>
-          {pageCount > paginationLimit && currentPage > 1? <span>
-            <span className="pagination-num" onClick={() => {
+        {size > perPage?
+        
+        <Pagination
+          size={size}
+          perPage={perPage}
+          pageCount={pageCount}
+          paginationLimit={paginationLimit}
+          currentPage={currentPage}
+          pages={pages}
+          changePage={this.changePage}
+          firstPage={() => {
+            this.changePage(1);
+            this.setState({ pageStart: 1 });
+          }}
+          lastPage={() => {
+            this.changePage(pageCount);
+            this.setState({ pageStart: pageCount - (paginationLimit -1)});
+          }}
+        /> : ''}
 
-              this.changePage(1); this.setState({ pageStart: 1 })
-            
-            }}>{"<"}</span>
-          </span> : ''}
-          
-          {pages.map(num => ( 
-            <span
-              key={num}
-              className={`pagination-num${currentPage === num? ' selected-page' : ''}`}
-              onClick={() => this.changePage(num)}
-            >
-              {num}
-            </span>
-          ))}
-
-          {pageCount > paginationLimit && currentPage < pageCount? <span>
-            <span className="pagination-num" onClick={() => {
-              this.changePage(pageCount); this.setState({ pageStart: pageCount - (paginationLimit -1)})
-            }}>{">"}</span>
-          </span> : ''}
-
-        </div> : ''}
       </div>
-    );
+    )
   }
 }
 
