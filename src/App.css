@@ -29,6 +29,9 @@ input {
   padding-left: 1rem;
   padding-right: 1rem;
 }
+footer {
+  height: 5rem;
+}
 
 .App {
   text-align: center;
@@ -52,9 +55,16 @@ input {
 .selected-page {
   font-weight: 800;
 }
+.page-size {
+  margin: 1rem 0;
+  cursor: pointer;
+}
+.sort-header {
+  cursor: pointer;
+}
 
 
-
+/* Ellipsis loading graphic */
 .lds-ellipsis {
   display: inline-block;
   position: relative;
