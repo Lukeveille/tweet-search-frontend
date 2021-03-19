@@ -93,7 +93,7 @@ class App extends React.Component {
     e.preventDefault();
     const { search, searchField, perPage, selectedRow, sortDirection } = this.state;
 
-    this.setState({loading: true, size: 0, results: [], currentPage: 1, query: search, selectedRow: searchField })
+    this.setState({loading: true, size: 0, results: [], currentPage: 1, query: search, selectedRow: searchField === "screen_name"? "user_name" : searchField })
 
     // first, fetch total query size, then fetch a page worth of data
     axios.get(`${api}/tweets/count?${searchField}_contains=${encodeURIComponent(search)}`).then(res => {
