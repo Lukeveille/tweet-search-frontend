@@ -62,14 +62,14 @@ class App extends React.Component {
     
     this.setState({ loading: true, currentPage: num });
     axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${perPage}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(num - 1) * perPage}`)
-    .then(this.updatePaginationStates)
+    .then(this.updatePaginationStates);
   }
   
   setPageSize = e => {
     const { query, queryField, selectedRow, sortDirection } = this.state
     this.setState({ loading: true, perPage: e.target.value, currentPage: 1, pageStart: 1 });
     axios.get(`${api}/tweets?_sort=${selectedRow}:${sortDirection}&_limit=${e.target.value}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(0) * e.target.value}`)
-    .then(this.updatePaginationStates)
+    .then(this.updatePaginationStates);
   }
 
   // adjust sorting key and direction when table header is clicked
@@ -86,7 +86,7 @@ class App extends React.Component {
 
     this.setState({ loading: true, sortDirection: newSortDirection, selectedRow: newSelectedRow });
     axios.get(`${api}/tweets?_sort=${newSelectedRow}:${newSortDirection}&_limit=${perPage}&${queryField}_contains=${encodeURIComponent(query)}&_start=${(0) * perPage}`)
-    .then(this.updatePaginationStates)
+    .then(this.updatePaginationStates);
   }
 
   // Query tweets
@@ -94,7 +94,16 @@ class App extends React.Component {
     e.preventDefault();
     const { search, searchField, perPage, selectedRow, sortDirection } = this.state;
 
-    this.setState({loading: true, size: 0, results: [], currentPage: 1, query: search, queryField: searchField, selectedRow: searchField === "screen_name"? "user_name" : searchField })
+    this.setState({
+      loading: true,
+      query: search,
+      queryField: searchField,
+      selectedRow: searchField === "screen_name"? "user_name" : searchField,
+      size: 0,
+      results: [],
+      currentPage: 1,
+      pageStart: 1
+    })
 
     // first, fetch total query size, then fetch a page worth of data
     axios.get(`${api}/tweets/count?${searchField}_contains=${encodeURIComponent(search)}`).then(res => {
@@ -106,8 +115,8 @@ class App extends React.Component {
 
   // View tweet in pop up
   selectTweet = i => {
-    const { screen_name, user_name, text } = this.state.results[i]
-    alert(`${user_name} (@${screen_name})\n\n${text}`)
+    const { screen_name, user_name, text } = this.state.results[i];
+    alert(`${user_name} (@${screen_name})\n\n${text}`);
   }
 
   render() {
